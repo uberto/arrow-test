@@ -15,5 +15,6 @@ suspend fun massiveRun(context: CoroutineContext, action: suspend () -> Unit) {
         }
         jobs.forEach { it.join() }
     }
+
     println("Completed ${n * k} actions in $time ms")
 }
