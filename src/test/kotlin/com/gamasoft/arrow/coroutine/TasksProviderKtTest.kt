@@ -3,13 +3,15 @@ package com.gamasoft.arrow.coroutine
 import collatzConjecture
 import javafx.util.Duration
 import junit.framework.Assert.assertEquals
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
-import kotlinx.coroutines.experimental.withTimeout
+import kotlinx.coroutines.experimental.channels.ReceiveChannel
+import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.channels.produce
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.experimental.coroutineContext
 
 internal class TasksProviderKtTest {
 
@@ -33,29 +35,72 @@ internal class TasksProviderKtTest {
 
     @Test
     fun collatzConjectureConcurrentTest() {
-        val num = 123456790582135410
-        val s = System.nanoTime()
-        runBlocking<Unit> {
-            withTimeout(10, TimeUnit.SECONDS) {
+
+        val maxProduced = AtomicInteger(0)
+        val maxConsumed = AtomicInteger(0)
+
+        fun produceNumbers() = produce(capacity = 10) {
+            var x = 123456790582135410
+//            while (true) {
+
+            for(i in 1 ..100) {
+
+                val t = System.currentTimeMillis()
+                while (System.currentTimeMillis() - t < 1_000) {
 
 
-
-                val channel = Channel<Int>(4) // create buffered channel
-                val sender = launch(coroutineContext) { // launch sender coroutine
-                    repeat(10) {
-                        println("Sending $it") // print before sending each element
-                        channel.send(it) // will suspend when buffer is full
-                    }
+                    //                println("Sending $x") // print before sending each element
+                    send(x++) // produce next
+                    maxProduced.incrementAndGet()
                 }
-                // don't receive anything... just wait....
-                delay(1000)
-                sender.cancel() // cancel sender coroutine
+                println(i)
+            }
+
+            println("finished!")
+        }
 
 
+        fun consumeNumbers(channel: ReceiveChannel<Long>) = launch {
+
+            while (true) {
+                val x = channel.receive()
+
+                val t = bigCollanz(x)
+//                println("BigCollanz of $it is $t")
+                maxConsumed.incrementAndGet()
             }
         }
-        val elapsed = System.nanoTime() - s
-        println("$elapsed   ")
+
+        val producer = produceNumbers()
+
+        val s = System.nanoTime()
+        runBlocking {
+
+//            for(i in 1 ..100) {
+//                val t = System.currentTimeMillis()
+//                while (System.currentTimeMillis() - t < 1_000) {
+//                    consumeNumbers(producer)
+//                }
+//                println(i)
+//            }
+//            while(!producer.isClosedForReceive)
+             repeat(10) {
+                 consumeNumbers(producer)
+             }
+//
+
+
+//            producer.cancel() // cancel producer coroutine and thus kill them all
+//            delay(1000)
+
+            while (!producer.isClosedForReceive)
+                delay(100)
+        }
+        val elapsed = (System.nanoTime() - s) / 1_000_000_000.0
+
+        println("$elapsed seconds ")
+        println(maxProduced.get())
+        println(maxConsumed.get())
     }
 
     private fun bigCollanz(num: Long): Int {
