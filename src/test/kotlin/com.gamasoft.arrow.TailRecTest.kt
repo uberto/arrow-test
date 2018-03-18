@@ -53,7 +53,7 @@ class TailRecTest {
     @Test
     fun bigNumber() {
         assertAll {
-            assert(population_count(Int.MAX_VALUE)).isEqualTo(63)
+            assert(population_count(Int.MAX_VALUE)).isEqualTo(31)
         }
     }
 
