@@ -1,6 +1,7 @@
 package com.gamasoft.arrow.coroutine
 
 import collatzConjecture
+import collatzConjectureRec
 import javafx.util.Duration
 import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.experimental.*
@@ -24,6 +25,16 @@ internal class TasksProviderKtTest {
         assertEquals(8, collatzConjecture(3))  //3 10 5 16 8 4 2 1
     }
 
+
+    @Test
+    fun collatzConjectureRecTest() {
+        assertEquals(2, collatzConjectureRec(2))
+        assertEquals(3, collatzConjectureRec(4))
+        assertEquals(4, collatzConjectureRec(8))
+        assertEquals(5, collatzConjectureRec(16))
+        assertEquals(8, collatzConjectureRec(3))  //3 10 5 16 8 4 2 1
+    }
+
     @Test
     fun collatzConjecturePerformanceTest() {
         val s = System.nanoTime()
@@ -31,6 +42,7 @@ internal class TasksProviderKtTest {
         val elapsed = System.nanoTime() - s
         println("$elapsed          iteractions $t")
     }
+
 
 
     @Test
