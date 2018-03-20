@@ -52,41 +52,24 @@ fun factorial2(x: Int, f:(Int) ->Int): Int = if (x == 1) 1 else x * f(x-1)
 
 fun factorial3(f:(Int) ->Int): (Int) -> Int = {x -> factorial2(x, f)}
 
-
-fun composeRec(f:((Int) ->Int) -> ((Int) -> Int)): (Int) -> Int = f(composeRec(f))
-
-fun<A> composeRecGen(f:(A) -> A): A = f(composeRecGen(f))
-
-
-data class RecFunc<A>(val p: (RecFunc<A>) -> Fun<A>)
-
-
-fun<A> cata(f:(Fun<A>) -> Fun<A>): Fun<A> = pippo(RecFunc { r -> f{ r.p(r)(it) } })
-
-
-fun <A> pippo(rec: RecFunc<A>):Fun<A> = rec.p(rec)
-
-
-fun <A> yComp(f:(Fun<A>) -> Fun<A>): Fun<A> = cata(f)
-
-
-//--
+//------
 
 typealias Fun<A> = (A) -> A
 
 
+data class Fix<A>(val invIso: (Fix<A>) -> Fun<A>)
 
 
-data class Funct<A>(val a: A) {
-
-    fun <B> fmap(f: (A) -> B): B = f(a)
-}
+fun<A> cata(f:(Fun<A>) -> Fun<A>): Fun<A> = fixRecFunc(Fix { r -> f{ x:A -> r.invIso(r)(x) } })
 
 
-typealias Algebra<A> = (Funct<A>) -> A
+fun <A> fixRecFunc(rec: Fix<A>):Fun<A> = rec.invIso(rec)
 
 
-data class Fix<A>(val invIso: Funct<Fix<Funct<A>>> )
+fun <A> yComp(f:(Fun<A>) -> Fun<A>): Fun<A> = cata(f)
+
+//--
+
 
 
 
@@ -95,7 +78,7 @@ data class Fix<A>(val invIso: Funct<Fix<Funct<A>>> )
 //fun cataInt(alg: Algebra<Int>): Fix<Int> =
 
 //
-//        cata :: Functor f => Algebra f a -> (Fix f -> a) -- catamorphism from Fix f to a
+//cata :: Functor f => Algebra f a -> (Fix f -> a) -- catamorphism from Fix f to a
 //cata alg = alg . fmap (cata alg) . invIso -- note that invIso and alg map in opposite directions
 //
 
