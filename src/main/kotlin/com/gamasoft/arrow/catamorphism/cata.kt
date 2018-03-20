@@ -61,12 +61,13 @@ fun<A> composeRecGen(f:(A) -> A): A = f(composeRecGen(f))
 data class RecFunc<A>(val p: (RecFunc<A>) -> Fun<A>)
 
 
-fun<A> composeRecFunc(f:(Fun<A>) -> Fun<A>): Fun<A> {
-    val rec = RecFunc<A> { r -> f{ r.p(r)(it) } }
-    return rec.p(rec)
-}
+fun<A> cata(f:(Fun<A>) -> Fun<A>): Fun<A> = pippo(RecFunc { r -> f{ r.p(r)(it) } })
 
-fun <A> yComp(f:(Fun<A>) -> Fun<A>): Fun<A> = composeRecFunc(f)
+
+fun <A> pippo(rec: RecFunc<A>):Fun<A> = rec.p(rec)
+
+
+fun <A> yComp(f:(Fun<A>) -> Fun<A>): Fun<A> = cata(f)
 
 
 //--

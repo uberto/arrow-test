@@ -40,7 +40,9 @@ internal class CatamorphismTest{
 //        val f:(Int) -> Int = composeRecGen(::factorial3lp)()
 //        assertEquals(6, f(3) )
 
-        assertEquals(6, yComb(::fac)(3))
+        assertEquals(6, cata(::fac)(3))
+        assertEquals(120, cata(::fac)(5))
+        assertEquals(3628800, cata(::fac)(10))
 
     }
 
