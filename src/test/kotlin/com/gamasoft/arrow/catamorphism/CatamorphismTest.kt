@@ -19,18 +19,6 @@ internal class CatamorphismTest{
 
     @Test
     fun FactorialCata(){
-        assertEquals(1, factorialCata(1))
-        assertEquals(2, factorialCata(2))
-        assertEquals(6, factorialCata(3))
-        assertEquals(24, factorialCata(4))
-        assertEquals(120, factorialCata(5))
-        assertEquals(2432902008176640000, factorialCata(20))
-    }
-
-
-    @Test
-    fun FactorialRect(){
-
         assertEquals(6, factorial(3))
         assertEquals(6, factorial2(3, ::factorial))
         assertEquals(6, factorial3(::factorial)(3))
@@ -43,6 +31,23 @@ internal class CatamorphismTest{
         assertEquals(6, cata(::fac)(3))
         assertEquals(120, cata(::fac)(5))
         assertEquals(3628800, cata(::fac)(10))
+
+    }
+
+
+    @Test
+    fun FibonacciCata(){
+
+
+        assertEquals(1, cata(::fib)(1))
+        assertEquals(1, cata(::fib)(2))
+        assertEquals(2, cata(::fib)(3))
+        assertEquals(3, cata(::fib)(4))
+        assertEquals(5, cata(::fib)(5))
+        assertEquals(8, cata(::fib)(6))
+        assertEquals(13, cata(::fib)(7))
+        assertEquals(21, cata(::fib)(8))
+        assertEquals(34, cata(::fib)(9))
 
     }
 

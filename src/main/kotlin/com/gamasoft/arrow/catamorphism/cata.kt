@@ -32,15 +32,15 @@ cata treeDepth tree
 //--------
 
 fun factorial(x: Int): Int = if (x == 1) 1 else x * factorial(x - 1)
-
-
-fun algeb(f: (Int)-> Int, x: Int): Int = if (x == 1) 1 else x * f(x - 1)
-
-
-fun fix(f:((Int) -> Int) -> Int): ((Int) -> Int) = {x -> f({y -> x})}
-
-fun factorialCata(x: Int):Int = algeb(fix({f -> algeb(f, x )}), x) // wrong result
-
+//
+//
+//fun algeb(f: (Int)-> Int): (Int) -> Int = {x -> if (x == 1) 1 else x * f(x - 1)}
+//
+//
+//fun fix(f:((Int) -> Int) -> Int): ((Int) -> Int) = {x -> f({y -> x})}
+//
+//fun factorialCata(x: Int):Int = algeb(fix({f -> algeb(f)}))(x) // wrong result
+//
 
 
 
@@ -60,7 +60,7 @@ typealias Fun<A> = (A) -> A
 data class Fix<A>(val invIso: (Fix<A>) -> Fun<A>)
 
 
-fun<A> cata(f:(Fun<A>) -> Fun<A>): Fun<A> = fixRecFunc(Fix { r -> f{ x:A -> r.invIso(r)(x) } })
+fun<A> cata(f:(Fun<A>) -> Fun<A>): Fun<A> = fixRecFunc(Fix { r -> f{ x:A -> fixRecFunc(r)(x) } })
 
 
 fun <A> fixRecFunc(rec: Fix<A>):Fun<A> = rec.invIso(rec)
