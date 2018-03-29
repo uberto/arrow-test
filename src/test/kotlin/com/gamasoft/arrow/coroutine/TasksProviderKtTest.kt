@@ -9,6 +9,8 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 import kotlinx.coroutines.experimental.channels.produce
+import kotlinx.coroutines.experimental.selects.select
+import kotlinx.coroutines.experimental.selects.whileSelect
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
@@ -51,30 +53,26 @@ internal class TasksProviderKtTest {
         val maxProduced = AtomicInteger(0)
         val maxConsumed = AtomicInteger(0)
 
-        fun produceNumbers() = produce(capacity = 10) {
+        fun produceNumbers() = produce(capacity = 20) {
             var x = 123456790582135410
 //            while (true) {
 
-            for(i in 1 ..100) {
+            while(!isClosedForSend) {
 
-                val t = System.currentTimeMillis()
-                while (System.currentTimeMillis() - t < 1_000) {
+                send(x++) // produce next
+                maxProduced.incrementAndGet()
 
 
-                    //                println("Sending $x") // print before sending each element
-                    send(x++) // produce next
-                    maxProduced.incrementAndGet()
-                }
-                println(i)
             }
 
             println("finished!")
+
         }
 
 
         fun consumeNumbers(channel: ReceiveChannel<Long>) = launch {
 
-            while (true) {
+            while (!channel.isClosedForReceive) {
                 val x = channel.receive()
 
                 val t = bigCollanz(x)
@@ -88,31 +86,26 @@ internal class TasksProviderKtTest {
         val s = System.nanoTime()
         runBlocking {
 
-//            for(i in 1 ..100) {
-//                val t = System.currentTimeMillis()
-//                while (System.currentTimeMillis() - t < 1_000) {
-//                    consumeNumbers(producer)
-//                }
-//                println(i)
-//            }
-//            while(!producer.isClosedForReceive)
-             repeat(10) {
+             repeat(12) {
                  consumeNumbers(producer)
              }
-//
 
+            repeat(20) {
+                delay(1000)
+                println(it)
+                println("produced ${maxProduced.get()}")
+                println("consumed ${maxConsumed.get()}")
+            }
 
-//            producer.cancel() // cancel producer coroutine and thus kill them all
-//            delay(1000)
+            producer.cancel() // cancel producer coroutine and thus kill them all
 
-            while (!producer.isClosedForReceive)
-                delay(100)
+            delay(100)
         }
         val elapsed = (System.nanoTime() - s) / 1_000_000_000.0
 
         println("$elapsed seconds ")
-        println(maxProduced.get())
-        println(maxConsumed.get())
+        println("produced ${maxProduced.get()}")
+        println("consumed ${maxConsumed.get()}")
     }
 
     private fun bigCollanz(num: Long): Int {
