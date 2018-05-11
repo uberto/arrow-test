@@ -9,6 +9,8 @@ import arrow.data.fix
 import arrow.data.runId
 import arrow.instances.monad
 import arrow.typeclasses.binding
+import assertk.assert
+import assertk.assertions.isEqualTo
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 
@@ -42,7 +44,7 @@ internal class ReaderMonadTest {
 //        assertEquals("Joe", name)
 //    }
 
-    fun getUserFromDb(userId:String):Reader<Context, User> {
+    fun getUser(userId:String):Reader<Context, User> {
         val runF: ReaderFun<Context, User> = {ctx -> ctx.getUser(userId)}
         return Reader(runF)
     }
@@ -53,22 +55,22 @@ internal class ReaderMonadTest {
     @Test
     fun readerMonad() {
 
-        val logic = Reader().monad<Context>().binding{
+        val user1 = "Frankie"
+        val user2 = "Jonnny"
 
-            val user1 = "Frankie"
-            val user2 = "Jonnny"
-            val u1 = getUserFromDb(user1).bind()
-            val u2 = getUserFromDb(user2).bind()
+        val logic = Reader().monad<Context>().binding{
+            val u1 = getUser(user1).bind()
+            val u2 = getUser(user2).bind()
 
             getCommonFriends(u1, u2).bind()
-
         }.fix()
-
+        //No Ctx specified yet (can be Db, RestApi, Mock etc.)
 
         val friends = logic.runId(Context("myDBServer"))
+        //[User(name=Frankie_f), User(name=Jonnny_f)]
 
-
-        assertEquals("[User(name=Frankie_f), User(name=Jonnny_f)]", friends.toString())
+        assert(friends.toString()).isEqualTo(
+                "[User(name=Frankie_f), User(name=Jonnny_f)]")
 
     }
 

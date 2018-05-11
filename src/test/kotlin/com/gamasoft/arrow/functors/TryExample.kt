@@ -76,6 +76,7 @@ internal class TryTest {
 
     @Test
     fun tryFunctor() {
+
         // Transforming the value, if the computation is a success:
         val actual = Try { "3".toInt() }.map { it + 1 }
         assert(actual).isEqualTo(Try.Success(4))
@@ -86,7 +87,8 @@ internal class TryTest {
         assert(actual2.getOrDefault { 42 }).isEqualTo(15)
 
         val failure = Try { "nope".toInt() }.map { it + 1 }
-        assert(failure.isSuccess()).isFalse()
+        assert(failure.isFailure())
+
     }
 
     @Test
@@ -114,22 +116,26 @@ internal class TryTest {
 
     @Test
     fun tryApplicativeFailure() {
+
         val tryHarder = Try.applicative().tupled(
                 Try { "3".toInt() },
                 Try { "5".toInt() },
                 Try { "nope".toInt() }
         )
+        //Failure(exception=java.lang.NumberFormatException: For input string: "nope"
 
         assertEquals("Failure(exception=java.lang.NumberFormatException: For input string: \"nope\")", tryHarder.toString())
     }
 
     @Test
     fun tryApplicativeSuccess() {
+
         val tryHarder = Try.applicative().tupled(
                 Try { "3".toInt() },
                 Try { "5".toInt() },
                 Try { "15".toInt() }
         )
+        //Success(value=Tuple3(a=3, b=5, c=15)
 
         assertEquals("Success(value=Tuple3(a=3, b=5, c=15))", tryHarder.toString())
     }
