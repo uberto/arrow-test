@@ -12,7 +12,7 @@ class Context(val connectionUrl: String) {
         return db.fetchUser(id)
     }
 
-    private fun openDb(connectionUrl: String): Db {
+    private fun openDb(connectionUrl: String): OpenDb {
         return Db.connect(connectionUrl)
     }
 
@@ -20,18 +20,33 @@ class Context(val connectionUrl: String) {
         println("User name ${u.name}")
     }
 
+    fun findCommonFriends(u1: User, u2: User): List<User> {
+        val db = openDb(connectionUrl)
+        return db.findCommonFriends(u1, u2)
+    }
+
 }
 
-class Db {
+sealed class Db {
     companion object {
-        fun connect(connectionUrl: String): Db {
-           return Db()
+        fun connect(connectionUrl: String): OpenDb {
+            return OpenDb()
         }
-
     }
+}
+
+object ClosedDb: Db() {
+
+}
+
+class OpenDb: Db() {
 
     fun fetchUser(id: String): User {
         return User(id)
+    }
+
+    fun findCommonFriends(u1: User, u2: User): List<User> {
+        return listOf(User(u1.name + "_f"), User(u2.name + "_f"))
     }
 
 }

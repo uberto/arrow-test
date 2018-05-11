@@ -1,14 +1,8 @@
 package com.gamasoft.arrow.applicative
 
 import arrow.data.*
-import arrow.instances.IntMonoid
-import arrow.instances.IntMonoidInstanceImplicits
-import arrow.syntax.monoid.combineAll
-import arrow.syntax.validated.invalid
-import arrow.syntax.validated.invalidNel
-import arrow.syntax.validated.valid
-import arrow.syntax.validated.validNel
-import junit.framework.Assert.assertEquals
+import arrow.instances.semigroup
+
 import assertk.assert
 import assertk.assertions.*
 import org.junit.Test
@@ -36,13 +30,13 @@ fun smallerThan10(n:Int): ValidatedNel<BrokenRule, Int> =
     if (n < 10) n.validNel() else MustBeSmallerThan10.invalidNel()
 
 
-fun ListKW<Rule>.validate(n: Int): ValidatedNel<BrokenRule, Int> =
+fun ListK<Rule>.validate(n: Int): ValidatedNel<BrokenRule, Int> =
         foldLeft(ValidatedNel.validNel(n)) { acc, rule ->
-            rule(n).combine(acc, NonEmptyList.semigroup())
+            rule(n).combine(NonEmptyList.semigroup(), Int.semigroup(), acc)
         }
-
-fun ListKW<Rule>.validate2(n: Int): ValidatedNel<BrokenRule, Int> =
-        map{it(n)}.combineAll() //java.lang.ClassNotFoundException: arrow.data.ValidatedMonoidInstanceImplicits
+//
+//fun ListK<Rule>.validate2(n: Int): ValidatedNel<BrokenRule, Int> =
+//        map{it(n)}.combineAll() //java.lang.ClassNotFoundException: arrow.data.ValidatedMonoidInstanceImplicits
 
 //Validated.monoid(IntMonoidInstance) { map{it(n)}.combineAll() }
 
@@ -80,7 +74,7 @@ internal class ValidatedNelExample {
     @Test
     fun validateFold() {
         val n = 13
-        val result = listOf(positive, even, ::smallerThan10).k().validate2(n)
+        val result = listOf(positive, even, ::smallerThan10).k().validate(n)
         val msg = validatedMessage(n, result)
 
         assert(result.isValid).isFalse()

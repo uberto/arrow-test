@@ -1,12 +1,9 @@
 package com.gamasoft.arrow.monoids
 
-import arrow.typeclasses.monoid
 import org.junit.Test
-import arrow.syntax.monoid.*
-import arrow.core.*
-import arrow.syntax.semigroup.combine
-import junit.framework.Assert.assertEquals
-import org.junit.Assert
+import arrow.instances.monoid
+import assertk.assert
+import assertk.assertions.isEqualTo
 
 
 /*** Arrow.io documentation as runnable code ***/
@@ -14,26 +11,25 @@ internal class MonoidTest {
 
     @Test
     fun emptyLaw() {
-        val StringMonoid = monoid<String>()
-
-        val empty = StringMonoid.empty()
-
-        assertEquals("a", empty.combine("a"))
-        assertEquals("a", StringMonoid.combine("a", empty))
+        String.monoid().run {
+            assert(empty().combine("a")).isEqualTo("a")
+            assert("a".combine( empty())).isEqualTo("a")
+        }
     }
 
     @Test
     fun associativityLaw() {
-
-        assertEquals(12, 3.combine( 4.combine(5) ))
-        assertEquals(12, (3.combine(4)).combine(5))
+        Int.monoid().apply {
+            assert(3.combine(4.combine(5))).isEqualTo(12)
+            assert((3.combine(4)).combine(5)).isEqualTo(12)
+        }
     }
 
     @Test
     fun combineAll() {
-
-        val word = listOf("Λ", "R", "R", "O", "W").combineAll()
-
-        assertEquals("ΛRROW", word)
+        String.monoid().apply {
+            val word = listOf("Λ", "R", "R", "O", "W").combineAll()
+            assert(word).isEqualTo("ΛRROW")
+        }
     }
 }

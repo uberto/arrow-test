@@ -1,6 +1,5 @@
 package com.gamasoft.arrow.functors
 
-import arrow.HK
 import arrow.higherkind
 import arrow.instances.StringSemigroupInstance
 import arrow.typeclasses.Functor
@@ -9,7 +8,7 @@ import arrow.typeclasses.Monoid
 
 //public inline fun <A> arrow.data.TryKind<A> /* = arrow.HK<arrow.data.TryHK, A> */.ev(): arrow.data.Try<A> { /* compiled code */ }
 
-public typealias LondonKind<A>  = arrow.HK<LondonHK, A>
+public typealias LondonKind<A>  = arrow.Kind<LondonHK, A>
 
 
 data class PalazzoReale(val name: String)

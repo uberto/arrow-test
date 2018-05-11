@@ -1,10 +1,13 @@
 package com.gamasoft.arrow.monads
 
+import arrow.core.Id
+import arrow.core.fix
 import arrow.core.value
 import arrow.data.Reader
-import arrow.data.applicative
-import arrow.data.ev
-import arrow.syntax.functor.map
+import arrow.data.ReaderFun
+import arrow.data.fix
+import arrow.data.runId
+import arrow.instances.monad
 import arrow.typeclasses.binding
 import junit.framework.Assert.assertEquals
 import org.junit.Test
@@ -14,9 +17,11 @@ internal class ReaderMonadTest {
 
     @Test
     fun readerFunctor() {
-        val reader = Reader{dbConn:String -> Context(dbConn)}
+        val runF: ReaderFun<String, Context> = {dbConn -> Context(dbConn) }
 
-        val name = reader.run("myDbConn")
+        val reader: Reader<String, Context> = Reader(runF)
+
+        val name = reader.run("myDbConn").fix()
                 .map{it.getUser("Joe") }
                 .map{it.name}
                 .value()
@@ -28,8 +33,8 @@ internal class ReaderMonadTest {
 //    fun readerFunctorLift() {
 //        val reader = Reader.applicative<String, Context>()
 //
-//        val name = reader.lift{ dbConn:String -> Context(dbConn) }
-//                .run("myDbConn")
+//        val name = reader.lift{ dbConn:String -> Id(Context(dbConn)) }
+//                .run("myDbConn").fix()
 //                .map{it.getUser("Joe") }
 //                .map{it.name}
 //                .value()
@@ -37,24 +42,35 @@ internal class ReaderMonadTest {
 //        assertEquals("Joe", name)
 //    }
 
-    fun getUserFromContext(userId:String) = Reader<Context, User>{ctx -> ctx.getUser(userId)}
+    fun getUserFromDb(userId:String):Reader<Context, User> {
+        val runF: ReaderFun<Context, User> = {ctx -> ctx.getUser(userId)}
+        return Reader(runF)
+    }
+
+    fun getCommonFriends(u1: User, u2: User): Reader<Context, List<User>> =
+            Reader{Id(it.findCommonFriends(u1, u2))}
 
     @Test
     fun readerMonad() {
 
-        val res = Reader().monad<Context>().binding{
+        val logic = Reader().monad<Context>().binding{
 
-            val u7 = getUserFromContext("Frankie").bind()
-            val u6 = getUserFromContext("Jonnny").bind()
+            val user1 = "Frankie"
+            val user2 = "Jonnny"
+            val u1 = getUserFromDb(user1).bind()
+            val u2 = getUserFromDb(user2).bind()
 
-           "$u7 & $u6"
-        }.ev().run(Context("pippo"))
+            getCommonFriends(u1, u2).bind()
+
+        }.fix()
 
 
-        assertEquals("User(name=Frankie) & User(name=Jonnny)", res.value())
+        val friends = logic.runId(Context("myDBServer"))
+
+
+        assertEquals("[User(name=Frankie_f), User(name=Jonnny_f)]", friends.toString())
 
     }
-
 
 
 }

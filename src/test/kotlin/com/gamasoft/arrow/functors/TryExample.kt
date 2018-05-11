@@ -1,14 +1,15 @@
 package com.gamasoft.arrow.functors
 
-import arrow.core.Option
-import arrow.core.Some
-import arrow.data.*
 import arrow.core.*
-import arrow.syntax.applicative.tupled
-import arrow.syntax.monoid.combineAll
+import arrow.data.valid
+import assertk.assert
+import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isInstanceOf
 import junit.framework.Assert.*
 
 import org.junit.Test
+import kotlin.reflect.KClass
 
 internal class TryTest {
 
@@ -76,15 +77,17 @@ internal class TryTest {
     @Test
     fun tryFunctor() {
         // Transforming the value, if the computation is a success:
-        val actual = Try.functor().map(Try { "3".toInt() }, { it + 1 })
+        val actual = Try { "3".toInt() }.map { it + 1 }
+        assert(actual).isEqualTo(Try.Success(4))
 
-        assertEquals(Try.Success(4), actual)
+        val actual2 = Try { "6".toInt() }
+                                .map { it * 2 }
+                                .map { it + 3 }
+        assert(actual2.getOrDefault { 42 }).isEqualTo(15)
 
-        val actual2 = Try { "6".toInt() }.map { it + 1 }
-        assertEquals(Try.Success(7), actual2)
-
+        val failure = Try { "nope".toInt() }.map { it + 1 }
+        assert(failure.isSuccess()).isFalse()
     }
-
 
     @Test
     fun tryLift() {
@@ -96,12 +99,17 @@ internal class TryTest {
 
     @Test
     fun tryMonoid() {
-        val actual = listOf<Try<Int>>(Success(1),
-                                      Success(3),
-                                      Failure(NullPointerException())
-        ).combineAll()
 
-        assertEquals(Try.Success(4), actual)
+
+//        Try.traverse().apply {
+//            val actual = listOf<Try<Int>>(
+//                    Success(1),
+//                    Success(3),
+//                    Failure(NullPointerException())).combineAll()
+//
+//            assertEquals(Try.Success(4), actual)
+//            }
+
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.gamasoft.arrow.applicative
 
 import arrow.data.*
+import arrow.instances.semigroup
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import org.junit.Assert
@@ -45,8 +46,8 @@ internal class ValidatedExample {
 
        val email = "fredATcompany"
 
-        val validations = ListKW(listOf<ValidationFunction>(
-                ::atMarkPresent, ::nameBefore, ::domainAfter))
+        val validations = listOf<ValidationFunction>(
+                ::atMarkPresent, ::nameBefore, ::domainAfter).k()
 
 
 
@@ -95,7 +96,7 @@ internal class ValidatedExample {
 
         fun validateEmail(email: EMail): ValidatedNel<ValidationError, EMail> {
             val validateds = validations.map { it(email) }
-            val rValid = validateds.traverse({x->x.swap()},Validated.applicative()).ev().swap()
+            val rValid = validateds.traverse(Validated.applicative(String.semigroup()), {x->x.swap()}).fix().swap()
             return rValid
         }
 
