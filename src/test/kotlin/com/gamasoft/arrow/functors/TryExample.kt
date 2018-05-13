@@ -121,7 +121,7 @@ internal class TryTest {
                 Try { "3".toInt() },
                 Try { "5".toInt() },
                 Try { "nope".toInt() }
-        )
+        ).fix()
         //Failure(exception=java.lang.NumberFormatException: For input string: "nope"
 
         assertEquals("Failure(exception=java.lang.NumberFormatException: For input string: \"nope\")", tryHarder.toString())
